@@ -1,13 +1,13 @@
 /* todo textの長さチェック、数字に変換できるかチェック、option型にチェックできるやつ
-   variantは型構築子一つならswitchいらずか確認
-*/
+      variantは型構築子一つならswitchいらずか確認
+   */
 type validator('e, 's) =
   | Validator('s => list('e));
 
-let fromErrors = (getErrors: 'subject => list('e)) : validator('e, 'subject) =>
+let fromErrors = (getErrors: 'subject => list('e)): validator('e, 'subject) =>
   Validator(getErrors);
 
-let all = (validators: list(validator('e, 's))) : validator('e, 's) => {
+let all = (validators: list(validator('e, 's))): validator('e, 's) => {
   let allGetErrors =
     validators
     |> List.map(validator =>

@@ -14,7 +14,7 @@ let optionalHandler = op =>
   };
 
 module Fragment = {
-  [@bs.module "react"] external fragment : ReasonReact.reactClass = "Fragment";
+  [@bs.module "react"] external fragment: ReasonReact.reactClass = "Fragment";
   let make = children =>
     ReasonReact.wrapJsForReason(
       ~reactClass=fragment,
@@ -24,7 +24,7 @@ module Fragment = {
 };
 
 module Router = {
-  let queryParamStrToTuple = (str: string) : option((string, string)) =>
+  let queryParamStrToTuple = (str: string): option((string, string)) =>
     switch (Js.String.split("=", str)) {
     | [|key, value|] => Some((key, value))
     | _ => None

@@ -1,5 +1,3 @@
-let component = ReasonReact.statelessComponent("ModalComponent");
-
 type modalSize =
   | Large
   | Small
@@ -54,6 +52,7 @@ let modalBgStyle =
 
 let modalBgHiddenStyle = ReactDOMRe.Style.make();
 
+[@react.component]
 let make =
     (
       ~hidden,
@@ -62,28 +61,24 @@ let make =
       ~header=?,
       ~footer=?,
       ~body=?,
-      _children,
+      (),
     ) => {
-  ...component,
-  render: _ => {
-    let modalClassName =
-      "modal modal-dialog fade modal-dialog-centered "
-      ++ modalSizeToAttr(size);
-    <ReactHelper.Fragment>
-      <div
-        className=modalClassName
-        style=(hidden ? modalHiddenStyle : modalOpenStyle)
-        onClick=ReactEventRe.Synthetic.stopPropagation>
-        <div className="modal-content">
-          (header |> ReactHelper.option)
-          (body |> ReactHelper.option)
-          (footer |> ReactHelper.option)
-        </div>
+  let modalClassName =
+    "modal modal-dialog fade modal-dialog-centered " ++ modalSizeToAttr(size);
+  <ReactHelper.Fragment>
+    <div
+      className=modalClassName
+      style={hidden ? modalHiddenStyle : modalOpenStyle}
+      onClick=ReactEventRe.Synthetic.stopPropagation>
+      <div className="modal-content">
+        {header |> ReactHelper.option}
+        {body |> ReactHelper.option}
+        {footer |> ReactHelper.option}
       </div>
-      <span
-        style=(hidden ? modalBgHiddenStyle : modalBgStyle)
-        onClick=(_ => onClickContentOutside |> ReactHelper.optionalHandler)
-      />
-    </ReactHelper.Fragment>;
-  },
+    </div>
+    <span
+      style={hidden ? modalBgHiddenStyle : modalBgStyle}
+      onClick={_ => onClickContentOutside |> ReactHelper.optionalHandler}
+    />
+  </ReactHelper.Fragment>;
 };

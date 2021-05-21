@@ -6,13 +6,13 @@ let toFragment = fn => (. a) => fn(a);
 let (~>) = toFragment;
 
 [@bs.module "./externalJsModules/ExecuteSomeService"]
-external execute : int => int = "";
+external execute: int => int = "";
 let executeResult = execute(100);
 
 Js.Console.log(executeResult);
 
 [@bs.module "./externalJsModules/ExecuteSomeService"]
-external executeNullable : int => Js.Undefined.t(int) = "executeNullable";
+external executeNullable: int => Js.Undefined.t(int) = "executeNullable";
 let executeNullableResult = executeNullable(100);
 Js.Console.log(executeNullableResult);
 let _ = {
@@ -22,16 +22,18 @@ let _ = {
     Js.Undefined.toOption(executeNullableResult);
   let appendOne = (+)(1);
   let r =
-    executeNullableResultOpt
-    |> Option.map((. a) => appendOne(a))
-    |> Option.map(~>appendOne)
-    |> Belt.Option.map(_, appendOne)
-    |. Belt.Option.map(appendOne);
+    (
+      executeNullableResultOpt
+      |> Option.map((. a) => appendOne(a))
+      |> Option.map(~>appendOne)
+      |> Belt.Option.map(_, appendOne)
+    )
+    ->(Belt.Option.map(appendOne));
   Console.log(r);
 };
 
 [@bs.module "./externalJsModules/ExecuteSomeService"]
-external executePromise : int => Js.Promise.t(int) = "executePromise";
+external executePromise: int => Js.Promise.t(int) = "executePromise";
 let executePromiseResult = executePromise(100);
 
 Js.Promise.(
@@ -48,11 +50,11 @@ let sampleArgObj = {pub name = "hoge"};
 type argJsObj = {name: string};
 
 [@bs.module "./externalJsModules/ExecuteSomeService"]
-external executeArgObj : argJsObj => argJsObj = "";
+external executeArgObj: argJsObj => argJsObj = "";
 let _ = {
   let argJsObjSample = argJsObj(~name="RYO");
   Js.Console.log(executeArgObj(argJsObjSample));
-  Js.Console.log(argJsObjSample |. nameGet);
+  Js.Console.log(argJsObjSample->nameGet);
   Js.Console.log({js|りょうた|js});
   Js.Console.log({j|りょうた|j});
 };
@@ -63,11 +65,11 @@ module IntPromiseWrapperDef = {
 
 module IntPromiseWrapper = PromiseWrapper(IntPromiseWrapperDef);
 
-let whenSuccess = v => <div> (ReasonReact.string(string_of_int(v))) </div>;
+let whenSuccess = v => <div> {ReasonReact.string(string_of_int(v))} </div>;
 
-let whenError = _ => <div> <p> (ReasonReact.string("ERROR!")) </p> </div>;
+let whenError = _ => <div> <p> {ReasonReact.string("ERROR!")} </p> </div>;
 
-let whenPending = <div> <p> (ReasonReact.string("NowLoading...")) </p> </div>;
+let whenPending = <div> <p> {ReasonReact.string("NowLoading...")} </p> </div>;
 
 let r = () => ();
 
@@ -166,13 +168,13 @@ module SampleRouting: Routing.Routing = {
     | Home =>
       timePromise(3000)
       |> Js.Promise.then_(v =>
-           <div> (ReasonReact.string(string_of_int(v))) </div>
+           <div> {ReasonReact.string(string_of_int(v))} </div>
            |> Js.Promise.resolve
          )
     | About =>
-      <div> (ReasonReact.string("About")) </div> |> Js.Promise.resolve
+      <div> {ReasonReact.string("About")} </div> |> Js.Promise.resolve
     | NotFound =>
-      <div> (ReasonReact.string("NF")) </div> |> Js.Promise.resolve
+      <div> {ReasonReact.string("NF")} </div> |> Js.Promise.resolve
     };
 };
 
@@ -188,7 +190,8 @@ let userFactory = name => {name, id: name};
 module UserLeaf = {
   type t = user;
   let identity = user => user.id;
-  let showLeaf = user => <p key=user.id> (ReasonReact.string(user.name)) </p>;
+  let showLeaf = user =>
+    <p key={user.id}> {ReasonReact.string(user.name)} </p>;
 };
 
 module UserTree = TreeData.Tree(UserLeaf);
@@ -220,43 +223,39 @@ ReactDOMRe.renderToElementWithId(
       size=Tooltip.Large
       text="IAM TOOLTIP"
       parent={
-        <button className="target"> (ReasonReact.string("HELLO")) </button>
+        <button className="target"> {ReasonReact.string("HELLO")} </button>
       }
     />
     <TodoFlexibleTable.TodoTableSample />
     <IntPromiseWrapper
-      promise=(timePromise(1000))
+      promise={timePromise(1000)}
       whenError
       whenPending
       whenSuccess
     />
     <ModalSample />
     <TextIncrementalSearch
-      searchResultView=(
-        results =>
-          <ul>
-            (
-              results
-              |> List.map(text =>
-                   <li key=text> (text |> ReasonReact.string) </li>
-                 )
-              |> Array.of_list
-              |> ReasonReact.array
-            )
-          </ul>
-      )
+      searchResultView={results =>
+        <ul>
+          {results
+           |> List.map(text =>
+                <li key=text> {text |> ReasonReact.string} </li>
+              )
+           |> Array.of_list
+           |> ReasonReact.array}
+        </ul>
+      }
     />
     <SamplePageImpl loadResourceArg="HOGE" />
     <SampleApp
-      initialPage={<div> (ReasonReact.string("INITIAL")) </div>}
-      onError=(_ => Js.Console.error("ERROR!"))
-      onStartTransition=(() => Js.Console.log("start_transition"))
-      onFinishTransition=(() => Js.Console.log("finish_transition"))
+      initialPage={<div> {ReasonReact.string("INITIAL")} </div>}
+      onError={_ => Js.Console.error("ERROR!")}
+      onStartTransition={() => Js.Console.log("start_transition")}
+      onFinishTransition={() => Js.Console.log("finish_transition")}
     />
-    (UserTree.showTree(userTreeSample))
+    {UserTree.showTree(userTreeSample)}
   </div>,
   "index",
 );
 
-
-let plus = (a: int, b: int): int => a + b; 
+let plus = (a: int, b: int): int => a + b;

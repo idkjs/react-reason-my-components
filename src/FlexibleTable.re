@@ -3,7 +3,7 @@ include FlexibleTableHeader;
 type element;
 
 [@bs.send]
-external addEventListener : (Dom.element, string, unit => unit) => unit =
+external addEventListener: (Dom.element, string, unit => unit) => unit =
   "addEventListener";
 
 type tableCell('column) = {
@@ -32,7 +32,7 @@ module FlexibleTable = (T: TableDef) => {
     | DetectedTableSize(float);
   let defaultHeaders = headerColumns =>
     headerColumns |> List.map(T.defaultHeader);
-  let headerItemToCell = (header: T.header) : T.cell => {
+  let headerItemToCell = (header: T.header): T.cell => {
     let width = getWidthSize(header.size);
     let px = "px";
     {
@@ -43,7 +43,8 @@ module FlexibleTable = (T: TableDef) => {
   let apperTable = (theRef, {ReasonReact.send, ReasonReact.state}) => {
     let domOpt = Js.Nullable.toOption(theRef);
     let tableDomToAction = tableDom => {
-      let tableWidth: float = ReactDOMRe.domElementToObj(tableDom)##clientWidth;
+      let tableWidth: float =
+        ReactDOMRe.domElementToObj(tableDom)##clientWidth;
       if (tableWidth != state.tableWidth) {
         DetectedTableSize(tableWidth) |> send;
       };
@@ -65,7 +66,7 @@ module FlexibleTable = (T: TableDef) => {
     };
   };
 
-  let component = ReasonReact.reducerComponent("FlexibleTable");
+  [@react.component]
   let make =
       (
         ~datas: list('data),
@@ -74,30 +75,32 @@ module FlexibleTable = (T: TableDef) => {
         ~header: list(T.cell) => ReasonReact.reactElement,
         ~footer: list(T.cell) => ReasonReact.reactElement,
         ~tableClassName: string,
-        _children,
-      ) => {
-    ...component,
-    initialState: () => {tableWidth: 0.0, tableDom: None},
-    reducer: (action, state) =>
-      switch (action) {
-      | DetectedTableSize(tableWidth) =>
-        ReasonReact.Update({...state, tableWidth})
-      },
-    render: self => {
-      let cells =
-        headerItems
-        |> getWidthSizeByTableWidthSize(self.state.tableWidth)
-        |> List.map(headerItemToCell);
-      let bodyRows =
-        datas |> List.map(row(cells)) |> Array.of_list |> ReasonReact.array;
+        (),
+      ) =>
+    ReactCompat.useRecordApi({
+      ...ReactCompat.component,
 
-      let header = cells |> header;
-      let footer = cells |> footer;
-      <table className=tableClassName ref=(self.handle(apperTable))>
-        <thead> header </thead>
-        <tbody> bodyRows </tbody>
-        <tfoot> footer </tfoot>
-      </table>;
-    },
-  };
+      initialState: () => {tableWidth: 0.0, tableDom: None},
+      reducer: (action, state) =>
+        switch (action) {
+        | DetectedTableSize(tableWidth) =>
+          ReasonReact.Update({...state, tableWidth})
+        },
+      render: self => {
+        let cells =
+          headerItems
+          |> getWidthSizeByTableWidthSize(self.state.tableWidth)
+          |> List.map(headerItemToCell);
+        let bodyRows =
+          datas |> List.map(row(cells)) |> Array.of_list |> ReasonReact.array;
+
+        let header = cells |> header;
+        let footer = cells |> footer;
+        <table className=tableClassName ref={self.handle(apperTable)}>
+          <thead> header </thead>
+          <tbody> bodyRows </tbody>
+          <tfoot> footer </tfoot>
+        </table>;
+      },
+    });
 };

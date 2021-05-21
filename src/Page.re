@@ -17,21 +17,19 @@ module Make =
 
   type resource = Js.Promise.t(D.resource);
 
-  let ifError = <div> (ReasonReact.string("ERROR")) </div>;
-  let ifPending = <div> (ReasonReact.string("Loading")) </div>;
+  let ifError = <div> {ReasonReact.string("ERROR")} </div>;
+  let ifPending = <div> {ReasonReact.string("Loading")} </div>;
   let ifSuccess = resource => resource |> D.initialize |> D.render;
 
   let component = ReasonReact.statelessComponent(D.componentName);
-  let make = (~loadResourceArg: D.loadResourceArg, _children) => {
-    ...component,
-    render: _ =>
-      <ResourcePromiseWrapper
-        promise=(D.loadResource(loadResourceArg))
-        whenSuccess=ifSuccess
-        whenError=(_ => ifError)
-        whenPending=ifPending
-      />,
-  };
+  [@react.component]
+  let make = (~loadResourceArg: D.loadResourceArg, ()) =>
+    <ResourcePromiseWrapper
+      promise={D.loadResource(loadResourceArg)}
+      whenSuccess=ifSuccess
+      whenError={_ => ifError}
+      whenPending=ifPending
+    />;
 };
 
 module Page = (D: Def) => {

@@ -57,15 +57,19 @@ let () = {
 
   let _ =
     Validation.run(
-      Validation.all([ifEmptyString(identity, [TextIsEmpty]), validateText]),
+      Validation.all([
+        ifEmptyString(identity, [TextIsEmpty]),
+        validateText,
+      ]),
       "",
     );
 
   let _ = {
-    let sample = sampleRecord(~age=30,~name= "dad");
+    let sample = sampleRecord(~age=30, ~name="dad");
     Validation.run(
       Validation.all([validateAge(ageGet), validateName(nameGet)]),
-      sample
+      sample,
     );
-  }
+  };
+  ();
 };

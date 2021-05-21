@@ -57,14 +57,9 @@ module Application = (R: Routing) : Content => {
 
   let component = ReasonReact.reducerComponent("application");
 
+  [@react.component]
   let make =
-      (
-        _children,
-        ~initialPage,
-        ~onError,
-        ~onStartTransition,
-        ~onFinishTransition,
-      ) => {
+      ((), ~initialPage, ~onError, ~onStartTransition, ~onFinishTransition) => {
     let transition = (url, {ReasonReact.send, ReasonReact.state}) => {
       open Js.Promise;
       let startTransitionTime = Js.Date.now();
@@ -83,8 +78,9 @@ module Application = (R: Routing) : Content => {
          })
       |> ignore;
     };
-    {
-      ...component,
+    ReactCompat.useRecordApi({
+      ...ReactCompat.component,
+
       initialState: () => {
         page: Loaded(initialPage),
         lastTransitionTime: Js.Date.now(),
@@ -105,13 +101,13 @@ module Application = (R: Routing) : Content => {
               page: InTransition(element),
               lastTransitionTime: transitionStartTime,
             },
-            (_ => onStartTransition()),
+            _ => onStartTransition(),
           )
         | LoadedPage(element, transitionStartTime) =>
           if (transitionStartTime == state.lastTransitionTime) {
             ReasonReact.UpdateWithSideEffects(
               {...state, page: Loaded(element)},
-              (_ => onFinishTransition()),
+              _ => onFinishTransition(),
             );
           } else {
             ReasonReact.NoUpdate;
@@ -119,10 +115,10 @@ module Application = (R: Routing) : Content => {
         | DetectedPageLoadError(error) =>
           ReasonReact.UpdateWithSideEffects(
             {...state, page: Loaded(getPageElement(state.page))},
-            (_ => onError(error)),
+            _ => onError(error),
           )
         },
       render: self => getPageElement(self.state.page),
-    };
+    });
   };
 };
