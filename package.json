@@ -9,12 +9,12 @@
     "webpack": "webpack serve",
     "webpack:production": "NODE_ENV=production webpack serve"
   },
-  "keywords": [
-    "BuckleScript"
-  ],
+  "keywords": [ "BuckleScript" ],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@anuragsoni/routes": "^0.9.1",
+    "@tsnobip/isotrope": "^0.1.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "reason-react": "^0.9.1",

@@ -6,7 +6,7 @@ let toFragment = fn => (. a) => fn(a);
 let (~>) = toFragment;
 
 [@bs.module "./externalJsModules/ExecuteSomeService"]
-external execute: int => int = "";
+external execute: int => int = "execute";
 let executeResult = execute(100);
 
 Js.Console.log(executeResult);
@@ -44,13 +44,13 @@ Js.Promise.(
 
 type argObj = {. name: string};
 
-let sampleArgObj = {pub name = "hoge"};
+let sampleArgObj:argObj = {pub name = "hoge"};
 
 [@bs.deriving abstract]
 type argJsObj = {name: string};
 
 [@bs.module "./externalJsModules/ExecuteSomeService"]
-external executeArgObj: argJsObj => argJsObj = "";
+external executeArgObj: argJsObj => argJsObj = "executeArgObj";
 let _ = {
   let argJsObjSample = argJsObj(~name="RYO");
   Js.Console.log(executeArgObj(argJsObjSample));
@@ -226,7 +226,7 @@ ReactDOMRe.renderToElementWithId(
         <button className="target"> {React.string("HELLO")} </button>
       }
     />
-    <TodoFlexibleTable.TodoTableSample />
+    // <TodoFlexibleTable.TodoTableSample />
     <IntPromiseWrapper
       promise={timePromise(1000)}
       whenError

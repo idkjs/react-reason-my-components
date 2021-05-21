@@ -2,10 +2,20 @@
 # yarn lockfile v1
 
 
+"@anuragsoni/routes@^0.9.1":
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/@anuragsoni/routes/-/routes-0.9.1.tgz#721fa5f3304fa1394880a707ec71ee6a7db32317"
+  integrity sha512-dbDv4vH9PIjo8ekqYpT3LAnZx4tOicdFjWwy/dbpNpYuTeNnWggOuH+qeEiO8eDmHLKCnlR3ZnVwlhL/wPQZeQ==
+
 "@discoveryjs/json-ext@^0.5.0":
   version "0.5.3"
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.3.tgz#90420f9f9c6d3987f176a19a7d8e764271a2f55d"
   integrity sha512-Fxt+AfXgjMoin2maPIYzFZnQjAXjAL0PHscM5pRTtatFqB+vZxAM9tLp2Optnuw3QOQC40jTNeGYFOMvyf7v9g==
+
+"@tsnobip/isotrope@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@tsnobip/isotrope/-/isotrope-0.1.2.tgz#c7853bf8bd77fda6d8b64382a7584de954c1ecac"
+  integrity sha512-fZWPheoAeM/XEFced8uS4Dub35ED8rZCJftZOhYod3MvjD8Ebn4jyhism7nsMe5qrGQiC2riU/WL1BfL1OID3w==
 
 "@types/eslint-scope@^3.7.0":
   version "3.7.0"

@@ -8,5 +8,5 @@ module Option = {
 
 module String = {
   let contain = (target: string, search: string) =>
-    Js.Re.(test(target, fromString(search)));
+    Js.Re.(test_(fromString(search),target));
 };
