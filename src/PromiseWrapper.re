@@ -16,7 +16,7 @@ module PromiseWrapper = (D: PromiseWrapperDef) => {
   let make =
       (
         ~promise: Js.Promise.t(D.v),
-        ~whenSuccess: 'v => ReasonReact.reactElement,
+        ~whenSuccess: 'v => React.element,
         ~whenError,
         ~whenPending,
         (),
@@ -29,10 +29,10 @@ module PromiseWrapper = (D: PromiseWrapperDef) => {
         switch (action) {
         | Completed(value) =>
           let state = Some(Success(value));
-          ReasonReact.Update(state);
+          Update(state);
         | Error(e) =>
           let state = Some(Failure(e));
-          ReasonReact.Update(state);
+          Update(state);
         },
       didMount: self =>
         promise

@@ -65,11 +65,11 @@ module IntPromiseWrapperDef = {
 
 module IntPromiseWrapper = PromiseWrapper(IntPromiseWrapperDef);
 
-let whenSuccess = v => <div> {ReasonReact.string(string_of_int(v))} </div>;
+let whenSuccess = v => <div> {React.string(string_of_int(v))} </div>;
 
-let whenError = _ => <div> <p> {ReasonReact.string("ERROR!")} </p> </div>;
+let whenError = _ => <div> <p> {React.string("ERROR!")} </p> </div>;
 
-let whenPending = <div> <p> {ReasonReact.string("NowLoading...")} </p> </div>;
+let whenPending = <div> <p> {React.string("NowLoading...")} </p> </div>;
 
 let r = () => ();
 
@@ -119,7 +119,7 @@ module SamplePage = (Resolver: SamplePageDependentsResolver) => {
   let render = t => {
     let name = t.name;
     let valueStr = t.value |> string_of_int;
-    ReasonReact.string(name ++ valueStr);
+    React.string(name ++ valueStr);
   };
 
   let loadResource = arg =>
@@ -168,13 +168,13 @@ module SampleRouting: Routing.Routing = {
     | Home =>
       timePromise(3000)
       |> Js.Promise.then_(v =>
-           <div> {ReasonReact.string(string_of_int(v))} </div>
+           <div> {React.string(string_of_int(v))} </div>
            |> Js.Promise.resolve
          )
     | About =>
-      <div> {ReasonReact.string("About")} </div> |> Js.Promise.resolve
+      <div> {React.string("About")} </div> |> Js.Promise.resolve
     | NotFound =>
-      <div> {ReasonReact.string("NF")} </div> |> Js.Promise.resolve
+      <div> {React.string("NF")} </div> |> Js.Promise.resolve
     };
 };
 
@@ -191,7 +191,7 @@ module UserLeaf = {
   type t = user;
   let identity = user => user.id;
   let showLeaf = user =>
-    <p key={user.id}> {ReasonReact.string(user.name)} </p>;
+    <p key={user.id}> {React.string(user.name)} </p>;
 };
 
 module UserTree = TreeData.Tree(UserLeaf);
@@ -223,7 +223,7 @@ ReactDOMRe.renderToElementWithId(
       size=Tooltip.Large
       text="IAM TOOLTIP"
       parent={
-        <button className="target"> {ReasonReact.string("HELLO")} </button>
+        <button className="target"> {React.string("HELLO")} </button>
       }
     />
     <TodoFlexibleTable.TodoTableSample />
@@ -239,7 +239,7 @@ ReactDOMRe.renderToElementWithId(
         <ul>
           {results
            |> List.map(text =>
-                <li key=text> {text |> ReasonReact.string} </li>
+                <li key=text> {text |> React.string} </li>
               )
            |> Array.of_list
            |> ReasonReact.array}
@@ -248,7 +248,7 @@ ReactDOMRe.renderToElementWithId(
     />
     <SamplePageImpl loadResourceArg="HOGE" />
     <SampleApp
-      initialPage={<div> {ReasonReact.string("INITIAL")} </div>}
+      initialPage={<div> {React.string("INITIAL")} </div>}
       onError={_ => Js.Console.error("ERROR!")}
       onStartTransition={() => Js.Console.log("start_transition")}
       onFinishTransition={() => Js.Console.log("finish_transition")}

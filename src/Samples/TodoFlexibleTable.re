@@ -20,19 +20,19 @@ let renderRow = (headers, data) => {
          switch (header.column) {
          | ID =>
            <td key={data.id ++ "id"} style={header.style}>
-             {data.id |> ReasonReact.string}
+             {data.id |> React.string}
            </td>
          | Name =>
            <td key={data.id ++ "name"} style={header.style}>
-             {data.text |> ReasonReact.string}
+             {data.text |> React.string}
            </td>
          | Age =>
            <td key={data.id ++ "age"} style={header.style}>
-             {data.age |> string_of_int |> ReasonReact.string}
+             {data.age |> string_of_int |> React.string}
            </td>
          | Hobby =>
            <td key={data.id ++ "hb"} style={header.style}>
-             {data.hobby |> ReasonReact.string}
+             {data.hobby |> React.string}
            </td>
          }
        )
@@ -47,19 +47,19 @@ let renderHeader = headers =>
           switch (header.column) {
           | ID =>
             <th style={header.style} key="header-id">
-              {ReasonReact.string("ID")}
+              {React.string("ID")}
             </th>
           | Name =>
             <th style={header.style} key="header-name">
-              {ReasonReact.string("Name")}
+              {React.string("Name")}
             </th>
           | Age =>
             <th style={header.style} key="header-age">
-              {ReasonReact.string("Age")}
+              {React.string("Age")}
             </th>
           | Hobby =>
             <th style={header.style} key="header-hobby">
-              {ReasonReact.string("Hobby")}
+              {React.string("Hobby")}
             </th>
           }
         )
@@ -67,7 +67,7 @@ let renderHeader = headers =>
      |> ReasonReact.array}
   </tr>;
 
-let renderFooter = _ => ReasonReact.null;
+let renderFooter = _ => React.null;
 
 module TodoTableDef = {
   type column = todoHeader;
@@ -117,7 +117,7 @@ module TodoTableSample = {
             } else {
               tmpNextHeaderItems;
             };
-          ReasonReact.UpdateWithSideEffects(
+          UpdateWithSideEffects(
             {...state, headerItems: nextHeaderItems},
             self => {
               let _ =
@@ -126,7 +126,7 @@ module TodoTableSample = {
             },
           );
         | ExtendTable =>
-          ReasonReact.Update({...state, tableClassName: "big-todo-table"})
+          Update({...state, tableClassName: "big-todo-table"})
         },
       didMount: self => {
         let _ = Js.Global.setTimeout(() => self.send(ExtendTable), 3000);

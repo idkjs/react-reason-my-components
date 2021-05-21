@@ -1,7 +1,7 @@
 module type Leaf = {
   type t;
   let identity: t => string;
-  let showLeaf: t => ReasonReact.reactElement;
+  let showLeaf: t => React.element;
 };
 
 module MyString = {
@@ -36,7 +36,7 @@ module Tree = (L: Leaf) => {
       nodes |> List.map(updateLeaf(t)) |> (nodes => Node(nodes))
     };
 
-  let rec showTree = (tree: tree): ReasonReact.reactElement =>
+  let rec showTree = (tree: tree): React.element =>
     switch (tree) {
     | Leaf(data) =>
       <span key={nodeIdentity(Leaf(data))}> {L.showLeaf(data)} </span>

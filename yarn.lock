@@ -371,11 +371,6 @@ bindings@^1.5.0:
   dependencies:
     file-uri-to-path "1.0.0"
 
-bloodyowl-upgrade-reason-react@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/bloodyowl-upgrade-reason-react/-/bloodyowl-upgrade-reason-react-1.0.0.tgz#3f208633eb316ec18f33e1758d1188d71f59c410"
-  integrity sha512-TQmKZf++Hs0TW1wqLzRmx13cUjVuPHZPWr0PtVhH7qRInqMmpefHrYjdTlO55ZgvQvKyx5aCFp8V6SNgfwRivw==
-
 body-parser@1.19.0:
   version "1.19.0"
   resolved "https://registry.yarnpkg.com/body-parser/-/body-parser-1.19.0.tgz#96b2709e57c9c4e09a6fd66a8fd979844f69f08a"
@@ -2286,7 +2281,17 @@ readdirp@^2.2.1:
     micromatch "^3.1.10"
     readable-stream "^2.0.2"
 
-reason-react@>=0.9.1:
+reason-react-compat@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/reason-react-compat/-/reason-react-compat-2.0.0.tgz#e3a3586379913a6e0e84887e9326959114fb7e9b"
+  integrity sha512-CJo1zJao+wCbPu8hiqbta4tQy0r70dKF+KMbp6Y1mIRYvAzhMp6eAY4lMlfNz2l19knnpnrW83F6/bYBB+ehtA==
+
+reason-react-update@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/reason-react-update/-/reason-react-update-2.0.0.tgz#64aba8752d212582288996fe988b06087f854b98"
+  integrity sha512-0dHC8p0GKYH2TMCtw8f7tuJTOwJonuB2mg8R0RxjuK5yr9Ne/cIoZOKqjGiwGZkjU9pcT4xowS5OaaBuJJuj9Q==
+
+reason-react@^0.9.1:
   version "0.9.1"
   resolved "https://registry.yarnpkg.com/reason-react/-/reason-react-0.9.1.tgz#30a887158200b659aa03e2d75ff4cc54dc462bb0"
   integrity sha512-nlH0O2TDy9KzOLOW+vlEQk4ExHOeciyzFdoLcsmmiit6hx6H5+CVDrwJ+8aiaLT/kqK5xFOjy4PS7PftWz4plA==

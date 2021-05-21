@@ -42,8 +42,8 @@ let make = (~position, ~size, ~text: string, ~parent, ()) =>
     initialState: () => {isOpen: false},
     reducer: (action, _) =>
       switch (action) {
-      | Open => ReasonReact.Update({isOpen: true})
-      | Close => ReasonReact.Update({isOpen: false})
+      | Open => Update({isOpen: true})
+      | Close => Update({isOpen: false})
       },
     render: self => {
       let tooltip =

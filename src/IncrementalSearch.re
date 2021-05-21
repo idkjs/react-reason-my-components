@@ -18,18 +18,12 @@ module IncrementalSearch = (D: Def) => {
     queueGetEntitesCommand: list(string),
   };
 
-  let onInputText = (e, {ReasonReact.send}) => {
-    let text =
-      ReactDOMRe.domElementToObj(ReactEventRe.Form.target(e))##value;
-    send(InputText(text));
-  };
-
   [@react.component]
   let make =
       (
         ~defaultText: option(string)=?,
         ~searchDelay: option(float)=?,
-        ~searchResultView: list(D.entity) => ReasonReact.reactElement,
+        ~searchResultView: list(D.entity) => React.element,
         (),
       ) =>
     ReactCompat.useRecordApi({
@@ -45,7 +39,7 @@ module IncrementalSearch = (D: Def) => {
         switch (action) {
         | InputText(text) =>
           let delay = Option.withDefault(0.0, searchDelay);
-          ReasonReact.UpdateWithSideEffects(
+          UpdateWithSideEffects(
             {
               ...state,
               text,
@@ -61,12 +55,11 @@ module IncrementalSearch = (D: Def) => {
               ();
             },
           );
-        | CompletedFindEntities(entities) =>
-          ReasonReact.Update({...state, entities})
+        | CompletedFindEntities(entities) => Update({...state, entities})
         | Dequeue =>
           switch (state.queueGetEntitesCommand) {
           | [command] =>
-            ReasonReact.UpdateWithSideEffects(
+            UpdateWithSideEffects(
               {...state, queueGetEntitesCommand: []},
               self =>
                 D.findEntities(command)
@@ -75,15 +68,18 @@ module IncrementalSearch = (D: Def) => {
                    )
                 |> ignore,
             )
-          | [_, ...tail] =>
-            ReasonReact.Update({...state, queueGetEntitesCommand: tail})
-          | [] => ReasonReact.NoUpdate
+          | [_, ...tail] => Update({...state, queueGetEntitesCommand: tail})
+          | [] => NoUpdate
           }
         },
       render: self => {
         let text = self.state.text;
+        let onInputText = e => {
+          let text = ReactEvent.Form.target(e)##value;
+          self.send(InputText(text));
+        };
         <div>
-          <input onInput={self.handle(onInputText)} value=text />
+          <input onInput={e => onInputText(e)} value=text />
           {searchResultView(self.state.entities)}
         </div>;
       },

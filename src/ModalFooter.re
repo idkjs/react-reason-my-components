@@ -1,2 +1,2 @@
 [@react.component]
-let make = () => <div className="modal-footer"> _children </div>;
+let make = (~children) => <div className="modal-footer"> children </div>;

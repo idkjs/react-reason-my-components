@@ -65,11 +65,11 @@ let make =
     ) => {
   let modalClassName =
     "modal modal-dialog fade modal-dialog-centered " ++ modalSizeToAttr(size);
-  <ReactHelper.Fragment>
+  <React.Fragment>
     <div
       className=modalClassName
       style={hidden ? modalHiddenStyle : modalOpenStyle}
-      onClick=ReactEventRe.Synthetic.stopPropagation>
+      onClick=ReactEvent.Synthetic.stopPropagation>
       <div className="modal-content">
         {header |> ReactHelper.option}
         {body |> ReactHelper.option}
@@ -80,5 +80,5 @@ let make =
       style={hidden ? modalBgHiddenStyle : modalBgStyle}
       onClick={_ => onClickContentOutside |> ReactHelper.optionalHandler}
     />
-  </ReactHelper.Fragment>;
+  </React.Fragment>;
 };

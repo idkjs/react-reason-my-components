@@ -26,7 +26,7 @@ module type TableDef = {
 module FlexibleTable = (T: TableDef) => {
   type state = {
     tableWidth: float,
-    mutable tableDom: option(Dom.element),
+    mutable tableDom: React.ref(Js.Nullable.t(Dom.element)),
   };
   type action =
     | DetectedTableSize(float);
@@ -40,67 +40,77 @@ module FlexibleTable = (T: TableDef) => {
       style: ReactDOMRe.Style.make(~width={j|$width$px|j}, ()),
     };
   };
-  let apperTable = (theRef, {ReasonReact.send, ReasonReact.state}) => {
-    let domOpt = Js.Nullable.toOption(theRef);
-    let tableDomToAction = tableDom => {
-      let tableWidth: float =
-        ReactDOMRe.domElementToObj(tableDom)##clientWidth;
-      if (tableWidth != state.tableWidth) {
-        DetectedTableSize(tableWidth) |> send;
-      };
-    };
-    switch (domOpt) {
-    | Some(dom) =>
-      state.tableDom = Some(dom);
-      let tableDom = dom;
-
-      addEventListener(dom, "transitionend", () =>
-        switch (state.tableDom) {
-        | Some(dom) => tableDomToAction(dom)
-        | None => ()
-        }
-      );
-
-      tableDomToAction(tableDom);
-    | None => ()
-    };
-  };
 
   [@react.component]
   let make =
       (
         ~datas: list('data),
         ~headerItems: list(T.header),
-        ~row: (list(T.cell), 'data) => ReasonReact.reactElement,
-        ~header: list(T.cell) => ReasonReact.reactElement,
-        ~footer: list(T.cell) => ReasonReact.reactElement,
+        ~row: (list(T.cell), 'data) => React.element,
+        ~header: list(T.cell) => React.element,
+        ~footer: list(T.cell) => React.element,
         ~tableClassName: string,
         (),
-      ) =>
-    ReactCompat.useRecordApi({
-      ...ReactCompat.component,
+      ) => {
+    let initialState = {
+      tableWidth: 0.0,
+      tableDom: React.useRef(Js.Nullable.null),
+    };
+    let (state, dispatch) =
+      React.useReducer(
+        (state, action) =>
+          switch (action) {
+          | DetectedTableSize(tableWidth) => {...state, tableWidth}
+          },
+        initialState,
+      );
+    // let theRef = React.useRef((None));
+    let apperTable = (theRef) => {
+      let domOpt = Js.Nullable.toOption(theRef);
+      let tableDomToAction = tableDom => {
+        let tableWidth: float =
+          ReactDOMRe.domElementToObj(tableDom)##clientWidth;
+        if (tableWidth != state.tableWidth) {
+          DetectedTableSize(tableWidth) |> dispatch;
+        };
+      };
+      switch (domOpt) {
+      | Some(dom) =>
+        state.tableDom = (dom);
+        let tableDom = dom;
 
-      initialState: () => {tableWidth: 0.0, tableDom: None},
-      reducer: (action, state) =>
-        switch (action) {
-        | DetectedTableSize(tableWidth) =>
-          ReasonReact.Update({...state, tableWidth})
-        },
-      render: self => {
-        let cells =
-          headerItems
-          |> getWidthSizeByTableWidthSize(self.state.tableWidth)
-          |> List.map(headerItemToCell);
-        let bodyRows =
-          datas |> List.map(row(cells)) |> Array.of_list |> ReasonReact.array;
+        addEventListener(state.tableDom, "transitionend", () =>
+          switch (state.tableDom) {
+          | Some(dom) => tableDomToAction(dom)
+          | None => ()
+          }
+        );
 
-        let header = cells |> header;
-        let footer = cells |> footer;
-        <table className=tableClassName ref={self.handle(apperTable)}>
-          <thead> header </thead>
-          <tbody> bodyRows </tbody>
-          <tfoot> footer </tfoot>
-        </table>;
+        tableDomToAction(tableDom);
+      | None => ()
+      };
+    };
+    React.useEffect1(
+      () => {
+        apperTable(state.tableDom);
+        None;
       },
-    });
+      [|state|],
+    );
+    let cells =
+      headerItems
+      |> getWidthSizeByTableWidthSize(state.tableWidth)
+      |> List.map(headerItemToCell);
+    let bodyRows =
+      datas |> List.map(row(cells)) |> Array.of_list |> ReasonReact.array;
+
+    let header = cells |> header;
+    let footer = cells |> footer;
+    <table
+      className=tableClassName ref={ReactDOMRe.Ref.domRef(state.tableDom)}>
+      <thead> header </thead>
+      <tbody> bodyRows </tbody>
+      <tfoot> footer </tfoot>
+    </table>;
+  };
 };

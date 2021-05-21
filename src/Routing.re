@@ -1,14 +1,14 @@
 module type Routing_ = {
   type route;
   let urlToRoute: ReasonReact.Router.url => route;
-  let transition: route => Js.Promise.t(ReasonReact.reactElement);
+  let transition: route => Js.Promise.t(React.element);
 };
 
 module type Routing = {
   type route;
   let urlToRoute:
     (ReasonReact.Router.url, Belt.Map.String.t(string)) => route;
-  let transition: route => Js.Promise.t(ReasonReact.reactElement);
+  let transition: route => Js.Promise.t(React.element);
 };
 
 module type Content = {
@@ -21,7 +21,7 @@ module type Content = {
   let make:
     (
       'a,
-      ~initialPage: ReasonReact.reactElement,
+      ~initialPage: React.element,
       ~onError: Js.Promise.error => unit,
       ~onStartTransition: unit => unit,
       ~onFinishTransition: unit => unit
@@ -37,8 +37,8 @@ module type Content = {
 
 module Application = (R: Routing) : Content => {
   type page =
-    | InTransition(ReasonReact.reactElement)
-    | Loaded(ReasonReact.reactElement);
+    | InTransition(React.element)
+    | Loaded(React.element);
 
   let getPageElement = page => {
     let InTransition(pageElement) | Loaded(pageElement) = page;
@@ -51,11 +51,11 @@ module Application = (R: Routing) : Content => {
   };
 
   type action =
-    | StartPageLoading(ReasonReact.reactElement, float)
-    | LoadedPage(ReasonReact.reactElement, float)
+    | StartPageLoading(React.element, float)
+    | LoadedPage(React.element, float)
     | DetectedPageLoadError(Js.Promise.error);
 
-  let component = ReasonReact.reducerComponent("application");
+  // let component = ReasonReact.reducerComponent("application");
 
   [@react.component]
   let make =
@@ -96,7 +96,7 @@ module Application = (R: Routing) : Content => {
       reducer: (action, state) =>
         switch (action) {
         | StartPageLoading(element, transitionStartTime) =>
-          ReasonReact.UpdateWithSideEffects(
+          UpdateWithSideEffects(
             {
               page: InTransition(element),
               lastTransitionTime: transitionStartTime,
@@ -105,15 +105,15 @@ module Application = (R: Routing) : Content => {
           )
         | LoadedPage(element, transitionStartTime) =>
           if (transitionStartTime == state.lastTransitionTime) {
-            ReasonReact.UpdateWithSideEffects(
+            UpdateWithSideEffects(
               {...state, page: Loaded(element)},
               _ => onFinishTransition(),
             );
           } else {
-            ReasonReact.NoUpdate;
+            NoUpdate;
           }
         | DetectedPageLoadError(error) =>
-          ReasonReact.UpdateWithSideEffects(
+          UpdateWithSideEffects(
             {...state, page: Loaded(getPageElement(state.page))},
             _ => onError(error),
           )

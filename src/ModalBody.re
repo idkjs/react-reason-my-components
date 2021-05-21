@@ -1,3 +1,3 @@
 [@react.component]
-let make = (_children: ReasonReact.reactElement) =>
-  <div className="modal-body"> _children </div>;
+let make = (~children)  =>
+  <div className="modal-body">  children</div>;

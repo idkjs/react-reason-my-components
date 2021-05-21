@@ -30,9 +30,9 @@ module type GlobalStore = {
   let renderWithStore:
     (
       ~render: GlobalStateManagement.Manager.t(action, state) =>
-               ReasonReact.reactElement
+               React.element
     ) =>
-    ReasonReact.reactElement;
+    React.element;
 };
 
 module type HomeExternalService = {let fetchDataHome: string => string;};
@@ -84,9 +84,9 @@ module MakeHomeContainer =
       |> Belt.Option.map(_, StateManagementDef.getMessages >> List.hd)
       |> Belt.Option.getWithDefault(_, "");
     <div>
-      <div> {number |> string_of_int |> ReasonReact.string} </div>
-      <div> {notification |> ReasonReact.string} </div>
-      {ReasonReact.string(HomeExternalService.fetchDataHome("HOME"))}
+      <div> {number |> string_of_int |> React.string} </div>
+      <div> {notification |> React.string} </div>
+      {React.string(HomeExternalService.fetchDataHome("HOME"))}
     </div>;
   };
 };
@@ -97,7 +97,7 @@ module MakeAboutContainer =
   [@react.component]
   let make = (~string, ()) => {
     let _ = Store.store;
-    <div> <div> {string |> ReasonReact.string} </div> </div>;
+    <div> <div> {string |> React.string} </div> </div>;
   };
 };
 
@@ -159,7 +159,7 @@ module MainContentRouting =
       <AboutPage string={Service.fetchDataAbout(name)} />
       |> Js.Promise.resolve
     | NotFound =>
-      <div> {ReasonReact.string("NF")} </div> |> Js.Promise.resolve
+      <div> {React.string("NF")} </div> |> Js.Promise.resolve
     };
 };
 
@@ -183,13 +183,13 @@ module App = {
 let showErrorModal = (error: App.error, refreshError) =>
   <div>
     {error.messages
-     |> List.map(ReasonReact.string)
+     |> List.map(React.string)
      |> Array.of_list
      |> ReasonReact.array}
     <div onClick={_ => refreshError()} />
   </div>;
 
-let header = () => <div> {ReasonReact.string("IAM HEADER")} </div>;
+let header = () => <div> {React.string("IAM HEADER")} </div>;
 
 module AppRoot = (MainContent: Routing.Content) => {
   open ReactHelper;
@@ -197,7 +197,7 @@ module AppRoot = (MainContent: Routing.Content) => {
 
   [@react.component]
   let make = (~store, ()) =>
-    <Fragment>
+    <React.Fragment>
       {header()}
       <MainContent
         initialPage=blankPage
@@ -211,7 +211,7 @@ module AppRoot = (MainContent: Routing.Content) => {
         onStartTransition={() => Js.Console.log("start_transition")}
         onFinishTransition={() => Js.Console.log("finish_transition")}
       />
-    </Fragment>;
+    </React.Fragment>;
 };
 
 module AppRootImpl =
