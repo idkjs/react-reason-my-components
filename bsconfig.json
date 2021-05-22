@@ -17,5 +17,5 @@
   "suffix": ".bs.js",
   "namespace": true,
   "bs-dependencies": [ "reason-react", "reason-react-update", "reason-react-compat","@anuragsoni/routes" ],
- "warnings": {"number": "-27"}
+ "warnings": {"number": "-27-109"}
 }

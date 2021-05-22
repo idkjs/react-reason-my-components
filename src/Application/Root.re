@@ -29,8 +29,7 @@ module type GlobalStore = {
 
   let renderWithStore:
     (
-      ~render: GlobalStateManagement.Manager.t(action, state) =>
-               React.element
+      ~render: GlobalStateManagement.Manager.t(action, state) => React.element
     ) =>
     React.element;
 };
@@ -109,24 +108,26 @@ module MainContentRouting =
          Service: AllExternalSercice,
        )
        : Routing.Routing => {
-  open UrlParser;
+  // open UrlParser;
 
   module HomePage = MakeHomeContainer(Store, Service);
   module AboutPage = MakeAboutContainer(Store, Service);
 
-  let intOfStringOpt = str =>
-    try (Some(int_of_string(str))) {
-    | Failure(_) => None
-    };
+  // let intOfStringOpt = str =>
+  //   try (Some(int_of_string(str))) {
+  //   | Failure(_) => None
+  //   };
   type route = appRoute;
-
+  open! UrlParser;
   let homeRoute =
     top
     / s("src")
     / s("index.html")
     |? intParamWithDefault("name", 0)
     |> toRoute(intValue => Home(intValue));
-  let aboutRoute = top / s("about") / string() |> toRoute(str => About(str));
+  let aboutRoute = {
+    top / s("about") / string() |> toRoute(str => About(str));
+  };
   let urlToRoute2 = oneOf(homeRoute ->> aboutRoute);
 
   /* todo url-parserで置き換えてみる */
@@ -158,8 +159,7 @@ module MainContentRouting =
     | About(name) =>
       <AboutPage string={Service.fetchDataAbout(name)} />
       |> Js.Promise.resolve
-    | NotFound =>
-      <div> {React.string("NF")} </div> |> Js.Promise.resolve
+    | NotFound => <div> {React.string("NF")} </div> |> Js.Promise.resolve
     };
 };
 
@@ -192,7 +192,7 @@ let showErrorModal = (error: App.error, refreshError) =>
 let header = () => <div> {React.string("IAM HEADER")} </div>;
 
 module AppRoot = (MainContent: Routing.Content) => {
-  open ReactHelper;
+  // open ReactHelper;
   let blankPage = <div className="loading" />;
 
   [@react.component]

@@ -24,10 +24,7 @@ module type TableDef = {
 };
 
 module FlexibleTable = (T: TableDef) => {
-  type state = {
-    tableWidth: float,
-    mutable tableDom: React.ref(Js.Nullable.t(Dom.element)),
-  };
+  type state = {tableWidth: float};
   type action =
     | DetectedTableSize(float);
   let defaultHeaders = headerColumns =>
@@ -52,38 +49,41 @@ module FlexibleTable = (T: TableDef) => {
         ~tableClassName: string,
         (),
       ) => {
-    let initialState = {
-      tableWidth: 0.0,
-      tableDom: React.useRef(Js.Nullable.null),
-    };
+    // let initialState = {
+    //   tableWidth: 0.0
+    // };
+    // this is cool. maybe unbox it to make it work?
+    // let (tableWidth, setTableWidth) = React.useState(_ => DetectedTableSize(0.0));
+    let (tableWidth, setTableWidth) = React.useState(_ => 0.0);
     let (state, dispatch) =
       React.useReducer(
         (state, action) =>
           switch (action) {
-          | DetectedTableSize(tableWidth) => {...state, tableWidth}
+          | DetectedTableSize(tableWidth) => tableWidth
           },
-        initialState,
+        [@reason.preserve_braces] 0.0,
       );
-    // let theRef = React.useRef((None));
-    let apperTable = (theRef) => {
-      let domOpt = Js.Nullable.toOption(theRef);
+    let theRef: React.ref(Js.Nullable.t(Dom.element)) =
+      React.useRef(Js.Nullable.null);
+    let apperTable = ref => {
+      let domOpt = Js.Nullable.toOption(ref);
       let tableDomToAction = tableDom => {
-        let tableWidth: float =
+        let newtableWidth: float =
           ReactDOMRe.domElementToObj(tableDom)##clientWidth;
-        if (tableWidth != state.tableWidth) {
+        // this is cool. maybe unbox it to make it work?
+        // if (newtableWidth != DetectedTableSize(tableWidth)) {
+        //   DetectedTableSize(tableWidth) |> dispatch;
+        // };
+        if (newtableWidth != tableWidth) {
           DetectedTableSize(tableWidth) |> dispatch;
         };
       };
       switch (domOpt) {
       | Some(dom) =>
-        state.tableDom = (dom);
         let tableDom = dom;
 
-        addEventListener(state.tableDom, "transitionend", () =>
-          switch (state.tableDom) {
-          | Some(dom) => tableDomToAction(dom)
-          | None => ()
-          }
+        addEventListener(tableDom, "transitionend", () =>
+          tableDomToAction(dom)
         );
 
         tableDomToAction(tableDom);
@@ -92,22 +92,21 @@ module FlexibleTable = (T: TableDef) => {
     };
     React.useEffect1(
       () => {
-        apperTable(state.tableDom);
+        apperTable(theRef.current);
         None;
       },
-      [|state|],
+      [|theRef|],
     );
     let cells =
       headerItems
-      |> getWidthSizeByTableWidthSize(state.tableWidth)
+      |> getWidthSizeByTableWidthSize(tableWidth)
       |> List.map(headerItemToCell);
     let bodyRows =
       datas |> List.map(row(cells)) |> Array.of_list |> ReasonReact.array;
 
     let header = cells |> header;
     let footer = cells |> footer;
-    <table
-      className=tableClassName ref={ReactDOMRe.Ref.domRef(state.tableDom)}>
+    <table className=tableClassName ref={ReactDOM.Ref.domRef(theRef)}>
       <thead> header </thead>
       <tbody> bodyRows </tbody>
       <tfoot> footer </tfoot>

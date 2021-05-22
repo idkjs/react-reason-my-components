@@ -17,7 +17,7 @@ let executeNullableResult = executeNullable(100);
 Js.Console.log(executeNullableResult);
 let _ = {
   open Js;
-  open Js.Promise;
+  // open Js.Promise;
   let executeNullableResultOpt: option(int) =
     Js.Undefined.toOption(executeNullableResult);
   let appendOne = (+)(1);
@@ -44,7 +44,7 @@ Js.Promise.(
 
 type argObj = {. name: string};
 
-let sampleArgObj:argObj = {pub name = "hoge"};
+let sampleArgObj: argObj = {pub name = "hoge"};
 
 [@bs.deriving abstract]
 type argJsObj = {name: string};
@@ -171,10 +171,8 @@ module SampleRouting: Routing.Routing = {
            <div> {React.string(string_of_int(v))} </div>
            |> Js.Promise.resolve
          )
-    | About =>
-      <div> {React.string("About")} </div> |> Js.Promise.resolve
-    | NotFound =>
-      <div> {React.string("NF")} </div> |> Js.Promise.resolve
+    | About => <div> {React.string("About")} </div> |> Js.Promise.resolve
+    | NotFound => <div> {React.string("NF")} </div> |> Js.Promise.resolve
     };
 };
 
@@ -190,8 +188,7 @@ let userFactory = name => {name, id: name};
 module UserLeaf = {
   type t = user;
   let identity = user => user.id;
-  let showLeaf = user =>
-    <p key={user.id}> {React.string(user.name)} </p>;
+  let showLeaf = user => <p key={user.id}> {React.string(user.name)} </p>;
 };
 
 module UserTree = TreeData.Tree(UserLeaf);
@@ -222,11 +219,9 @@ ReactDOMRe.renderToElementWithId(
       position=Tooltip.Down
       size=Tooltip.Large
       text="IAM TOOLTIP"
-      parent={
-        <button className="target"> {React.string("HELLO")} </button>
-      }
+      parent={<button className="target"> {React.string("HELLO")} </button>}
     />
-    // <TodoFlexibleTable.TodoTableSample />
+    <TodoFlexibleTable.TodoTableSample />
     <IntPromiseWrapper
       promise={timePromise(1000)}
       whenError
@@ -238,9 +233,7 @@ ReactDOMRe.renderToElementWithId(
       searchResultView={results =>
         <ul>
           {results
-           |> List.map(text =>
-                <li key=text> {text |> React.string} </li>
-              )
+           |> List.map(text => <li key=text> {text |> React.string} </li>)
            |> Array.of_list
            |> ReasonReact.array}
         </ul>

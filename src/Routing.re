@@ -17,22 +17,15 @@ module type Content = {
   type state;
 
   type action;
-
+  [@react.component]
   let make:
     (
-      'a,
       ~initialPage: React.element,
       ~onError: Js.Promise.error => unit,
       ~onStartTransition: unit => unit,
       ~onFinishTransition: unit => unit
     ) =>
-    ReasonReact.componentSpec(
-      state,
-      state,
-      ReasonReact.noRetainedProps,
-      ReasonReact.noRetainedProps,
-      action,
-    );
+    React.element;
 };
 
 module Application = (R: Routing) : Content => {
@@ -58,67 +51,70 @@ module Application = (R: Routing) : Content => {
   // let component = ReasonReact.reducerComponent("application");
 
   [@react.component]
-  let make =
-      ((), ~initialPage, ~onError, ~onStartTransition, ~onFinishTransition) => {
-    let transition = (url, {ReasonReact.send, ReasonReact.state}) => {
+  let make = (~initialPage, ~onError, ~onStartTransition, ~onFinishTransition) => {
+    let (state, dispatch) =
+      React.useReducer(
+        (state, action) =>
+          switch (action) {
+          | StartPageLoading(element, transitionStartTime) => {
+              page: InTransition(element),
+              lastTransitionTime: transitionStartTime,
+            }
+          // UpdateWithSideEffects(
+          //   {
+          //     page: InTransition(element),
+          //     lastTransitionTime: transitionStartTime,
+          //   },
+          //   _ => onStartTransition(),
+          // )
+          | LoadedPage(element, transitionStartTime) =>
+            transitionStartTime == state.lastTransitionTime
+              ? {...state, page: Loaded(element)} : state
+          // if (transitionStartTime == state.lastTransitionTime) {
+          //   UpdateWithSideEffects(
+          //     {...state, page: Loaded(element)},
+          //     _ => onFinishTransition(),
+          //   );
+          // } else {
+          //   NoUpdate;
+          // }
+          | DetectedPageLoadError(error) => {
+              ...state,
+              page: Loaded(getPageElement(state.page)),
+            }
+          // UpdateWithSideEffects(
+          //   {...state, page: Loaded(getPageElement(state.page))},
+          //   _ => onError(error),
+          // )
+          },
+        {page: Loaded(initialPage), lastTransitionTime: Js.Date.now()},
+      );
+    let transition = url => {
       open Js.Promise;
       let startTransitionTime = Js.Date.now();
       let route =
         R.urlToRoute(url, ReactHelper.Router.routeToqueryParamMap(url));
-      send(
+      onStartTransition();
+      dispatch(
         StartPageLoading(getPageElement(state.page), startTransitionTime),
       );
       R.transition(route)
       |> then_(element =>
-           LoadedPage(element, startTransitionTime) |> send |> resolve
+           LoadedPage(element, startTransitionTime) |> dispatch |> resolve
          )
       |> catch(error => {
-           send(DetectedPageLoadError(error));
+           dispatch(DetectedPageLoadError(error));
            resolve();
          })
       |> ignore;
     };
-    ReactCompat.useRecordApi({
-      ...ReactCompat.component,
 
-      initialState: () => {
-        page: Loaded(initialPage),
-        lastTransitionTime: Js.Date.now(),
-      },
-      didMount: self => {
-        let id = ReasonReact.Router.watchUrl(self.handle(transition));
-        self.onUnmount(() => ReasonReact.Router.unwatchUrl(id));
-        self.handle(
-          transition,
-          ReasonReact.Router.dangerouslyGetInitialUrl(),
-        );
-      },
-      reducer: (action, state) =>
-        switch (action) {
-        | StartPageLoading(element, transitionStartTime) =>
-          UpdateWithSideEffects(
-            {
-              page: InTransition(element),
-              lastTransitionTime: transitionStartTime,
-            },
-            _ => onStartTransition(),
-          )
-        | LoadedPage(element, transitionStartTime) =>
-          if (transitionStartTime == state.lastTransitionTime) {
-            UpdateWithSideEffects(
-              {...state, page: Loaded(element)},
-              _ => onFinishTransition(),
-            );
-          } else {
-            NoUpdate;
-          }
-        | DetectedPageLoadError(error) =>
-          UpdateWithSideEffects(
-            {...state, page: Loaded(getPageElement(state.page))},
-            _ => onError(error),
-          )
-        },
-      render: self => getPageElement(self.state.page),
+    React.useEffect0(() => {
+      let id = ReasonReact.Router.watchUrl(transition);
+      ignore(transition(ReasonReact.Router.dangerouslyGetInitialUrl()));
+      Some(() => ReasonReact.Router.unwatchUrl(id));
     });
+
+    getPageElement(state.page);
   };
 };
