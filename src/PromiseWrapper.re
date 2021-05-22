@@ -12,40 +12,41 @@ module PromiseWrapper = (D: PromiseWrapperDef) => {
 
   type state = option(result(D.v, Js.Promise.error));
 
-  let component = ReasonReact.reducerComponent("PromiseWrapper");
-
+  [@react.component]
   let make =
       (
         ~promise: Js.Promise.t(D.v),
-        ~whenSuccess: 'v => ReasonReact.reactElement,
+        ~whenSuccess: 'v => React.element,
         ~whenError,
         ~whenPending,
-        _children,
-      ) => {
-    ...component,
-    initialState: () => None,
-    reducer: (action, _) =>
-      switch (action) {
-      | Completed(value) =>
-        let state = Some(Success(value));
-        ReasonReact.Update(state);
-      | Error(e) =>
-        let state = Some(Failure(e));
-        ReasonReact.Update(state);
-      },
-    didMount: self =>
-      promise
-      |> then_(value => resolve(self.send(Completed(value))))
-      |> catch(error => resolve(self.send(Error(error))))
-      |> ignore,
-    render: self =>
-      switch (self.state) {
-      | None => whenPending
-      | Some(result) =>
-        switch (result) {
-        | Success(value) => whenSuccess(value)
-        | Failure(e) => whenError(e)
-        }
-      },
-  };
+        (),
+      ) =>
+    ReactCompat.useRecordApi({
+      ...ReactCompat.component,
+
+      initialState: () => None,
+      reducer: (action, _) =>
+        switch (action) {
+        | Completed(value) =>
+          let state = Some(Success(value));
+          Update(state);
+        | Error(e) =>
+          let state = Some(Failure(e));
+          Update(state);
+        },
+      didMount: self =>
+        promise
+        |> then_(value => resolve(self.send(Completed(value))))
+        |> catch(error => resolve(self.send(Error(error))))
+        |> ignore,
+      render: self =>
+        switch (self.state) {
+        | None => whenPending
+        | Some(result) =>
+          switch (result) {
+          | Success(value) => whenSuccess(value)
+          | Failure(e) => whenError(e)
+          }
+        },
+    });
 };

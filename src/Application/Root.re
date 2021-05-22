@@ -13,7 +13,7 @@ module Utils = {
     });
 };
 
-open Operator
+open Operator;
 
 let (==>) = (a, b) => (a, b);
 
@@ -29,10 +29,9 @@ module type GlobalStore = {
 
   let renderWithStore:
     (
-      ~render: GlobalStateManagement.Manager.t(action, state) =>
-               ReasonReact.reactElement
+      ~render: GlobalStateManagement.Manager.t(action, state) => React.element
     ) =>
-    ReasonReact.reactElement;
+    React.element;
 };
 
 module type HomeExternalService = {let fetchDataHome: string => string;};
@@ -72,36 +71,32 @@ module StateManagementDef = {
 };
 
 module MakeHomeContainer =
-       (Store: GlobalStore with type state = StateManagementDef.state, HomeExternalService: HomeExternalService) => {
+       (
+         Store: GlobalStore with type state = StateManagementDef.state,
+         HomeExternalService: HomeExternalService,
+       ) => {
   let component = ReasonReact.statelessComponent("HomeContainer");
-  let make = (~number, _children) => {
-    ...component,
-    render: _ => {
-      let notification = GlobalStateManagement.Manager.getState(Store.store).notification
-          |> Belt.Option.map(_, StateManagementDef.getMessages >> List.hd)
-          |> Belt.Option.getWithDefault(_, "");
-      <div>
-        <div> (number |> string_of_int |> ReasonReact.string) </div>
-        <div> (notification |> ReasonReact.string) </div>
-        (ReasonReact.string(HomeExternalService.fetchDataHome("HOME")))
-      </div>
-    }
+  [@react.component]
+  let make = (~number, ()) => {
+    let notification =
+      GlobalStateManagement.Manager.getState(Store.store).notification
+      |> Belt.Option.map(_, StateManagementDef.getMessages >> List.hd)
+      |> Belt.Option.getWithDefault(_, "");
+    <div>
+      <div> {number |> string_of_int |> React.string} </div>
+      <div> {notification |> React.string} </div>
+      {React.string(HomeExternalService.fetchDataHome("HOME"))}
+    </div>;
   };
 };
 
 module MakeAboutContainer =
-  (Store: GlobalStore, AboutExternalService: AboutExternalService) => {
+       (Store: GlobalStore, AboutExternalService: AboutExternalService) => {
   let component = ReasonReact.statelessComponent("AboutContainer");
-  let make =
-      (
-        ~string,
-        _children,
-      ) => {
-    ...component,
-    render: _ => {
-      let _ = Store.store;
-      <div> <div> (string |> ReasonReact.string) </div> </div>;
-    },
+  [@react.component]
+  let make = (~string, ()) => {
+    let _ = Store.store;
+    <div> <div> {string |> React.string} </div> </div>;
   };
 };
 
@@ -113,56 +108,58 @@ module MainContentRouting =
          Service: AllExternalSercice,
        )
        : Routing.Routing => {
-  open UrlParser;
+  // open UrlParser;
 
   module HomePage = MakeHomeContainer(Store, Service);
   module AboutPage = MakeAboutContainer(Store, Service);
 
-  let intOfStringOpt = str =>
-    try (Some(int_of_string(str))) {
-    | Failure(_) => None
-    };
+  // let intOfStringOpt = str =>
+  //   try (Some(int_of_string(str))) {
+  //   | Failure(_) => None
+  //   };
   type route = appRoute;
-         
-  let homeRoute = top / s("src") / s("index.html") |? intParamWithDefault("name",0) |> toRoute(intValue => Home(intValue))
-  let aboutRoute = top/ s("about") / string() |> toRoute(str => About(str));
-  let urlToRoute2 = oneOf(
-    homeRoute ->> aboutRoute
-  );
+  open! UrlParser;
+  let homeRoute =
+    top
+    / s("src")
+    / s("index.html")
+    |? intParamWithDefault("name", 0)
+    |> toRoute(intValue => Home(intValue));
+  let aboutRoute = {
+    top / s("about") / string() |> toRoute(str => About(str));
+  };
+  let urlToRoute2 = oneOf(homeRoute ->> aboutRoute);
 
-  /* todo url-parserで置き換えてみる */       
+  /* todo url-parserで置き換えてみる */
   let urlToRoute = (url: ReasonReact.Router.url, queryParam) =>
-    parseRouterUrl(urlToRoute2, url) |> Belt.Option.getExn
-    /* switch (url.path) {
-    | ["src", "index.html"] =>
-      Home(
-        queryParam
-        |> Belt.Map.String.get(_, "name")
-        |> Belt.Option.flatMap(_, intOfStringOpt)
-        |> Belt.Option.getWithDefault(_, 0),
-      )
-    | ["about"] =>
-      About(Belt.Map.String.getWithDefault(queryParam, "name", "default!"))
-    | route =>
-      Js.Console.log(route);
-      NotFound;
-    }; */
+    parseRouterUrl(urlToRoute2, url) |> Belt.Option.getExn;
+  /* switch (url.path) {
+     | ["src", "index.html"] =>
+       Home(
+         queryParam
+         |> Belt.Map.String.get(_, "name")
+         |> Belt.Option.flatMap(_, intOfStringOpt)
+         |> Belt.Option.getWithDefault(_, 0),
+       )
+     | ["about"] =>
+       About(Belt.Map.String.getWithDefault(queryParam, "name", "default!"))
+     | route =>
+       Js.Console.log(route);
+       NotFound;
+     }; */
 
+  /* let subRoute = parseRouterUrl(urlToRoute2) */
 
-
-    /* let subRoute = parseRouterUrl(urlToRoute2) */
-     
-  /* todm 関数合成で表現してみたい */           
+  /* todm 関数合成で表現してみたい */
   let transition = route =>
     switch (route) {
     | Home(number) =>
       Utils.timePromise(3000)
       |> Js.Promise.then_(_ => <HomePage number /> |> Js.Promise.resolve)
     | About(name) =>
-        <AboutPage string=(Service.fetchDataAbout(name)) />
+      <AboutPage string={Service.fetchDataAbout(name)} />
       |> Js.Promise.resolve
-    | NotFound =>
-      <div> (ReasonReact.string("NF")) </div> |> Js.Promise.resolve
+    | NotFound => <div> {React.string("NF")} </div> |> Js.Promise.resolve
     };
 };
 
@@ -185,42 +182,36 @@ module App = {
 
 let showErrorModal = (error: App.error, refreshError) =>
   <div>
-    (
-      error.messages
-      |> List.map(ReasonReact.string)
-      |> Array.of_list
-      |> ReasonReact.array
-    )
-    <div onClick=(_ => refreshError()) />
+    {error.messages
+     |> List.map(React.string)
+     |> Array.of_list
+     |> ReasonReact.array}
+    <div onClick={_ => refreshError()} />
   </div>;
 
-let header = () => <div> (ReasonReact.string("IAM HEADER")) </div>;
+let header = () => <div> {React.string("IAM HEADER")} </div>;
 
 module AppRoot = (MainContent: Routing.Content) => {
-  open ReactHelper;
+  // open ReactHelper;
   let blankPage = <div className="loading" />;
-  let component = ReasonReact.statelessComponent("AppRoot");
-  let make = (~store, _children) => {
-    ...component,
-    render: _ =>
-      <Fragment>
-        (header())
-        <MainContent
-          initialPage=blankPage
-          onError=(
-            _ => {
-              let error: App.error = {messages: ["PagePrepareError"]};
-              GlobalStateManagement.Manager.dispatch(
-                store,
-                App.DetectedError(error),
-              );
-            }
-          )
-          onStartTransition=(() => Js.Console.log("start_transition"))
-          onFinishTransition=(() => Js.Console.log("finish_transition"))
-        />
-      </Fragment>,
-  };
+
+  [@react.component]
+  let make = (~store, ()) =>
+    <React.Fragment>
+      {header()}
+      <MainContent
+        initialPage=blankPage
+        onError={_ => {
+          let error: App.error = {messages: ["PagePrepareError"]};
+          GlobalStateManagement.Manager.dispatch(
+            store,
+            App.DetectedError(error),
+          );
+        }}
+        onStartTransition={() => Js.Console.log("start_transition")}
+        onFinishTransition={() => Js.Console.log("finish_transition")}
+      />
+    </React.Fragment>;
 };
 
 module AppRootImpl =

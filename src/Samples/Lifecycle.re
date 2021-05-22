@@ -12,12 +12,11 @@ module MakePage = (Mvu: MVU) => {
   type page = {model: Mvu.model};
 
   let update =
-      (msg: Mvu.msg, page: page)
-      : (page, list(Js.Promise.t(Mvu.msg))) =>
+      (msg: Mvu.msg, page: page): (page, list(Js.Promise.t(Mvu.msg))) =>
     Mvu.update(msg, page.model)
     |> (tup => ({model: tup |> fst}, tup |> snd));
 
-  let init = (seed: Mvu.seed) : page => {model: Mvu.init(seed)};
+  let init = (seed: Mvu.seed): page => {model: Mvu.init(seed)};
 };
 
 type todoId =
@@ -45,7 +44,7 @@ module TodoMvu = {
     | DeteteTodo(id) => (List.filter(todo => todo.id === id, model), [])
     };
 
-  let init = (seed: todo) : model => [seed];
+  let init = (seed: todo): model => [seed];
 };
 
 module TodoPage = MakePage(TodoMvu);

@@ -55,10 +55,10 @@ let s = str =>
 /** https://ocamlverse.github.io/content/weak_type_variables.html
  * unitをとって関数が実行されると、実行の文脈から型が決まってコンパイルエラーにならない？
  */
-let string = () : parser(string => 'a, 'a) =>
+let string = (): parser(string => 'a, 'a) =>
   custom("STRING", (v: string) => Result.Ok(v));
 
-let int = () : parser(int => 'a, 'a) =>
+let int = (): parser(int => 'a, 'a) =>
   custom("INT", v =>
     try (Ok(int_of_string(v))) {
     | Failure(msg) => Result.Error(msg)
@@ -84,7 +84,6 @@ let map = (subValue, Parser(parse)) =>
       List.map(parsed, mapHelp(value));
     },
   );
-
 
 let (=>>) = (p, s) => [map(s, p)];
 
@@ -125,47 +124,52 @@ let parseRouterUrl = (parser, url: ReasonReact.Router.url) =>
 
 let (->>) = (route1, route2) => List.concat(route1, route2);
 
-type queryParser('a, 'b) = QueryParser(state('a) => list(state('b)));
+type queryParser('a, 'b) =
+  | QueryParser(state('a) => list(state('b)));
 
 let (|?) = (Parser(parser), QueryParser(queryParser)) => {
-  Parser((state) => {
-    (parser(state))
-      |> List.map(_, queryParser)
-      |> List.flatten
-  })
+  Parser(
+    state => parser(state) |> List.map(_, queryParser) |> List.flatten,
+  );
 };
 
-let customParam = (key, func) => QueryParser(({visited, unvisited, params, value}) => {
-  [{
-    visited,
-    unvisited,
-    params,
-    value: value(func(Belt.Map.String.get(params, key)))
-  }]
-});
+let customParam = (key, func) =>
+  QueryParser(
+    ({visited, unvisited, params, value}) =>
+      [
+        {
+          visited,
+          unvisited,
+          params,
+          value: value(func(Belt.Map.String.get(params, key))),
+        },
+      ],
+  );
 
-let stringParam = (name) => customParam(name, (v) => v);
+let stringParam = name => customParam(name, v => v);
 
-let intParam = (name) => customParam(name, (stringValueOpt) => {
-  stringValueOpt
-    |> Option.flatMap(_, (stringValue => {
-      try(Some(int_of_string(stringValue))) {
-      | Failure(_) => None
-      }
-    }))
-});
+let intParam = name =>
+  customParam(name, stringValueOpt =>
+    stringValueOpt
+    |> Option.flatMap(_, stringValue =>
+         try (Some(int_of_string(stringValue))) {
+         | Failure(_) => None
+         }
+       )
+  );
 
-let intParamWithDefault = (name, default) => customParam(name, (stringValueOpt) => {
-  stringValueOpt
-    |> Option.flatMap(_, (stringValue => {
-      try(Some(int_of_string(stringValue))) {
-      | Failure(_) => Some(default)
-      }
-    }))
+let intParamWithDefault = (name, default) =>
+  customParam(name, stringValueOpt =>
+    stringValueOpt
+    |> Option.flatMap(_, stringValue =>
+         try (Some(int_of_string(stringValue))) {
+         | Failure(_) => Some(default)
+         }
+       )
     |> Option.getWithDefault(_, default)
-});
+  );
 
-let toRoute = (s, p) => [map(s, p)]
+let toRoute = (s, p) => [map(s, p)];
 
 module Sample = {
   let andThen = (a, b, v) => b(a(v));
@@ -174,26 +178,31 @@ module Sample = {
     | Home(string, string)
     | AB(string, option(string))
     | NotFound;
-  
+
   let home = (v1, v2) => Home(v1, v2);
   let ab = (v, v2) => AB(v, v2);
 
   let start = () => {
     Js.Console.log("Start");
 
-
     /* let a = (10 to 200); */
-    let homeRoute2= top / string() / string() |> toRoute(home);
+    let homeRoute2 = top / string() / string() |> toRoute(home);
 
     let homeRoute = top / string() / string() =>> home;
-    let abRoute = top / string() / s("fail") / s("hoge") |? stringParam("name") =>> ab;
+    let abRoute =
+      top / string() / s("fail") / s("hoge") |? stringParam("name") =>> ab;
     let parser = oneOf(abRoute ->> homeRoute ->> homeRoute2);
 
     let parsed =
       parseRouterUrl(parser, ReasonReact.Router.dangerouslyGetInitialUrl());
 
-    let _ = ReasonReact.Router.watchUrl(parseRouterUrl(parser) >> Option.getWithDefault(_, NotFound) >> Js.Console.log);
-    
+    let _ =
+      ReasonReact.Router.watchUrl(
+        parseRouterUrl(parser)
+        >> Option.getWithDefault(_, NotFound)
+        >> Js.Console.log,
+      );
+
     Js.Console.log(parsed);
   };
 };

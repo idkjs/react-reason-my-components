@@ -34,29 +34,30 @@ let sizeToAttrString = size =>
 
 type state = {isOpen: bool};
 
-let component = ReasonReact.reducerComponent("TooltipComponent");
+[@react.component]
+let make = (~position, ~size, ~text: string, ~parent, ()) =>
+  ReactCompat.useRecordApi({
+    ...ReactCompat.component,
 
-let make = (~position, ~size, ~text: string, ~parent, _children) => {
-  ...component,
-  initialState: () => {isOpen: false},
-  reducer: (action, _) =>
-    switch (action) {
-    | Open => ReasonReact.Update({isOpen: true})
-    | Close => ReasonReact.Update({isOpen: false})
+    initialState: () => {isOpen: false},
+    reducer: (action, _) =>
+      switch (action) {
+      | Open => Update({isOpen: true})
+      | Close => Update({isOpen: false})
+      },
+    render: self => {
+      let tooltip =
+        ReasonReact.cloneElement(
+          parent,
+          ~props={
+            "data-balloon-length": sizeToAttrString(size),
+            "data-balloon": text,
+            "data-balloon-pos": positionToAttrString(position),
+            "onMouseOver": _ => self.send(Open),
+            "onMouseLeave": _ => self.send(Close),
+          },
+          [||],
+        );
+      tooltip;
     },
-  render: self => {
-    let tooltip =
-      ReasonReact.cloneElement(
-        parent,
-        ~props={
-          "data-balloon-length": sizeToAttrString(size),
-          "data-balloon": text,
-          "data-balloon-pos": positionToAttrString(position),
-          "onMouseOver": _ => self.send(Open),
-          "onMouseLeave": _ => self.send(Close),
-        },
-        [||],
-      );
-    tooltip;
-  },
-};
+  });

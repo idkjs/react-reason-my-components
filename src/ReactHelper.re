@@ -1,7 +1,7 @@
 let option = op =>
   switch (op) {
   | Some(a) => a
-  | None => ReasonReact.null
+  | None => React.null
   };
 
 let andThen = (a, b, v) => b(a(v));
@@ -13,18 +13,18 @@ let optionalHandler = op =>
   | None => ()
   };
 
-module Fragment = {
-  [@bs.module "react"] external fragment : ReasonReact.reactClass = "Fragment";
-  let make = children =>
-    ReasonReact.wrapJsForReason(
-      ~reactClass=fragment,
-      ~props=Js.Obj.empty(),
-      children,
-    );
-};
+// module Fragment = {
+//   [@bs.module "react"] external fragment: ReasonReact.reactClass = "Fragment";
+//   let make = children =>
+//     ReasonReact.wrapJsForReason(
+//       ~reactClass=fragment,
+//       ~props=Js.Obj.empty(),
+//       children,
+//     );
+// };
 
 module Router = {
-  let queryParamStrToTuple = (str: string) : option((string, string)) =>
+  let queryParamStrToTuple = (str: string): option((string, string)) =>
     switch (Js.String.split("=", str)) {
     | [|key, value|] => Some((key, value))
     | _ => None

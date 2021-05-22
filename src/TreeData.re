@@ -1,11 +1,11 @@
 module type Leaf = {
   type t;
   let identity: t => string;
-  let showLeaf: t => ReasonReact.reactElement;
+  let showLeaf: t => React.element;
 };
 
 module MyString = {
-  let join = (strings: list(string)) : string =>
+  let join = (strings: list(string)): string =>
     List.fold_left((a, b) => a ++ b, "", strings);
 };
 
@@ -17,7 +17,7 @@ module Tree = (L: Leaf) => {
   let leaf = (t: L.t) => Leaf(t);
   let node = (tree: list(tree)) => Node(tree);
 
-  let rec nodeIdentity = (tree: tree) : string =>
+  let rec nodeIdentity = (tree: tree): string =>
     switch (tree) {
     | Leaf(data) => "leaf-" ++ L.identity(data)
     | Node(datas) =>
@@ -36,17 +36,17 @@ module Tree = (L: Leaf) => {
       nodes |> List.map(updateLeaf(t)) |> (nodes => Node(nodes))
     };
 
-  let rec showTree = (tree: tree) : ReasonReact.reactElement =>
+  let rec showTree = (tree: tree): React.element =>
     switch (tree) {
     | Leaf(data) =>
-      <span key=(nodeIdentity(Leaf(data)))> (L.showLeaf(data)) </span>
+      <span key={nodeIdentity(Leaf(data))}> {L.showLeaf(data)} </span>
     | Node(nodes) =>
       nodes
       |> List.map(showTree)
       |> (
         reactElmList =>
-          <div key=(nodeIdentity(Node(nodes)))>
-            (reactElmList |> Array.of_list |> ReasonReact.array)
+          <div key={nodeIdentity(Node(nodes))}>
+            {reactElmList |> Array.of_list |> ReasonReact.array}
           </div>
       )
     };

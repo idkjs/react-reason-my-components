@@ -1,14 +1,14 @@
 module type Routing_ = {
   type route;
   let urlToRoute: ReasonReact.Router.url => route;
-  let transition: route => Js.Promise.t(ReasonReact.reactElement);
+  let transition: route => Js.Promise.t(React.element);
 };
 
 module type Routing = {
   type route;
   let urlToRoute:
     (ReasonReact.Router.url, Belt.Map.String.t(string)) => route;
-  let transition: route => Js.Promise.t(ReasonReact.reactElement);
+  let transition: route => Js.Promise.t(React.element);
 };
 
 module type Content = {
@@ -17,28 +17,21 @@ module type Content = {
   type state;
 
   type action;
-
+  [@react.component]
   let make:
     (
-      'a,
-      ~initialPage: ReasonReact.reactElement,
+      ~initialPage: React.element,
       ~onError: Js.Promise.error => unit,
       ~onStartTransition: unit => unit,
       ~onFinishTransition: unit => unit
     ) =>
-    ReasonReact.componentSpec(
-      state,
-      state,
-      ReasonReact.noRetainedProps,
-      ReasonReact.noRetainedProps,
-      action,
-    );
+    React.element;
 };
 
 module Application = (R: Routing) : Content => {
   type page =
-    | InTransition(ReasonReact.reactElement)
-    | Loaded(ReasonReact.reactElement);
+    | InTransition(React.element)
+    | Loaded(React.element);
 
   let getPageElement = page => {
     let InTransition(pageElement) | Loaded(pageElement) = page;
@@ -51,78 +44,77 @@ module Application = (R: Routing) : Content => {
   };
 
   type action =
-    | StartPageLoading(ReasonReact.reactElement, float)
-    | LoadedPage(ReasonReact.reactElement, float)
+    | StartPageLoading(React.element, float)
+    | LoadedPage(React.element, float)
     | DetectedPageLoadError(Js.Promise.error);
 
-  let component = ReasonReact.reducerComponent("application");
+  // let component = ReasonReact.reducerComponent("application");
 
-  let make =
-      (
-        _children,
-        ~initialPage,
-        ~onError,
-        ~onStartTransition,
-        ~onFinishTransition,
-      ) => {
-    let transition = (url, {ReasonReact.send, ReasonReact.state}) => {
+  [@react.component]
+  let make = (~initialPage, ~onError, ~onStartTransition, ~onFinishTransition) => {
+    let (state, dispatch) =
+      React.useReducer(
+        (state, action) =>
+          switch (action) {
+          | StartPageLoading(element, transitionStartTime) => {
+              page: InTransition(element),
+              lastTransitionTime: transitionStartTime,
+            }
+          // UpdateWithSideEffects(
+          //   {
+          //     page: InTransition(element),
+          //     lastTransitionTime: transitionStartTime,
+          //   },
+          //   _ => onStartTransition(),
+          // )
+          | LoadedPage(element, transitionStartTime) =>
+            transitionStartTime == state.lastTransitionTime
+              ? {...state, page: Loaded(element)} : state
+          // if (transitionStartTime == state.lastTransitionTime) {
+          //   UpdateWithSideEffects(
+          //     {...state, page: Loaded(element)},
+          //     _ => onFinishTransition(),
+          //   );
+          // } else {
+          //   NoUpdate;
+          // }
+          | DetectedPageLoadError(error) => {
+              ...state,
+              page: Loaded(getPageElement(state.page)),
+            }
+          // UpdateWithSideEffects(
+          //   {...state, page: Loaded(getPageElement(state.page))},
+          //   _ => onError(error),
+          // )
+          },
+        {page: Loaded(initialPage), lastTransitionTime: Js.Date.now()},
+      );
+    let transition = url => {
       open Js.Promise;
       let startTransitionTime = Js.Date.now();
       let route =
         R.urlToRoute(url, ReactHelper.Router.routeToqueryParamMap(url));
-      send(
+      onStartTransition();
+      dispatch(
         StartPageLoading(getPageElement(state.page), startTransitionTime),
       );
       R.transition(route)
       |> then_(element =>
-           LoadedPage(element, startTransitionTime) |> send |> resolve
+           LoadedPage(element, startTransitionTime) |> dispatch |> resolve
          )
       |> catch(error => {
-           send(DetectedPageLoadError(error));
+           dispatch(DetectedPageLoadError(error));
            resolve();
          })
       |> ignore;
     };
-    {
-      ...component,
-      initialState: () => {
-        page: Loaded(initialPage),
-        lastTransitionTime: Js.Date.now(),
-      },
-      didMount: self => {
-        let id = ReasonReact.Router.watchUrl(self.handle(transition));
-        self.onUnmount(() => ReasonReact.Router.unwatchUrl(id));
-        self.handle(
-          transition,
-          ReasonReact.Router.dangerouslyGetInitialUrl(),
-        );
-      },
-      reducer: (action, state) =>
-        switch (action) {
-        | StartPageLoading(element, transitionStartTime) =>
-          ReasonReact.UpdateWithSideEffects(
-            {
-              page: InTransition(element),
-              lastTransitionTime: transitionStartTime,
-            },
-            (_ => onStartTransition()),
-          )
-        | LoadedPage(element, transitionStartTime) =>
-          if (transitionStartTime == state.lastTransitionTime) {
-            ReasonReact.UpdateWithSideEffects(
-              {...state, page: Loaded(element)},
-              (_ => onFinishTransition()),
-            );
-          } else {
-            ReasonReact.NoUpdate;
-          }
-        | DetectedPageLoadError(error) =>
-          ReasonReact.UpdateWithSideEffects(
-            {...state, page: Loaded(getPageElement(state.page))},
-            (_ => onError(error)),
-          )
-        },
-      render: self => getPageElement(self.state.page),
-    };
+
+    React.useEffect0(() => {
+      let id = ReasonReact.Router.watchUrl(transition);
+      ignore(transition(ReasonReact.Router.dangerouslyGetInitialUrl()));
+      Some(() => ReasonReact.Router.unwatchUrl(id));
+    });
+
+    getPageElement(state.page);
   };
 };

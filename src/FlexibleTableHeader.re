@@ -32,7 +32,7 @@ let getWidthSizeByTableWidthSize = (tableWidthSize, header) => {
   if (tableWidthSize > totalHeaderSize) {
     let flexibleSizeHeaderCount =
       header
-      |> List.filter(header => ! header.isSizeFixed)
+      |> List.filter(header => !header.isSizeFixed)
       |> List.length
       |> float_of_int;
 

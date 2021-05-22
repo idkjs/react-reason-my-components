@@ -1,6 +1,2 @@
-let component = ReasonReact.statelessComponent("ModalFooterComponent");
-
-let make = _children => {
-  ...component,
-  render: _ => <div className="modal-footer"> _children </div>,
-};
+[@react.component]
+let make = (~children) => <div className="modal-footer"> children </div>;
