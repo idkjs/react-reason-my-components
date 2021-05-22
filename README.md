@@ -1,4 +1,7 @@
 # react-reason-components
+# studying the functors in here
+
+original repo is -> https://github.com/ryota0624/react-reason-my-components
 
 ## Run Project
 
